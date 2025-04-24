@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:osm="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <org.osmdroid.views.MapView
+        android:id="@+id/map"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Load Saved Path Button -->
+    <Button
+        android:id="@+id/btnLoadPath"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Load Saved Path"
+        android:layout_margin="16dp"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentStart="true"
+        android:backgroundTint="@android:color/holo_blue_dark"
+        android:textColor="@android:color/white" />
+
+    <!-- Toggle Path Visibility Button -->
+    <Button
+        android:id="@+id/btnToggleSavedPath"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Hide Saved Path"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:layout_margin="16dp"
+        android:backgroundTint="@android:color/holo_orange_dark"
+        android:textColor="@android:color/white" />
+
+    <!-- Tracking Toggle Button -->
+    <ToggleButton
+        android:id="@+id/btnToggleTracking"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textOff="Start Tracking"
+        android:textOn="Stop Tracking"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="16dp"/>
+</RelativeLayout>
