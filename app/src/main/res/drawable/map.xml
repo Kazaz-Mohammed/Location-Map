@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="48"
+    android:viewportHeight="48">
+
+    <!-- Circle representing the globe -->
+    <path
+        android:fillColor="#2196F3"
+        android:pathData="M24,1C11.85,1 2,10.85 2,23s9.85,22 22,22s22-9.85 22-22S36.15,1 24,1zM24,42C13.95,42 6,34.05 6,23S13.95,4 24,4s18,8.95 18,19S34.05,42 24,42z"/>
+
+    <!-- Pin icon representing location -->
+    <path
+        android:fillColor="#ffffff"
+        android:pathData="M24,17c-3.9,0 -7,3.1 -7,7s3.1,7 7,7s7-3.1 7-7S27.9,17 24,17zM24,26c-1.7,0 -3-1.3 -3-3s1.3-3 3-3s3,1.3 3,3S25.7,26 24,26z"/>
+
+</vector>

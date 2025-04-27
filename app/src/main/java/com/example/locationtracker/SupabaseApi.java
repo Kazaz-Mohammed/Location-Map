@@ -7,27 +7,27 @@ import retrofit2.http.Body;
 import retrofit2.http.GET;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
-public interface LocationApi {
-//    @Headers("Content-Type: application/json")
-//    @POST("save_location.php")
+
+public interface SupabaseApi {
+    @Headers({
+            "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jdnp4dmthd2xoamxocHdycXdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1MzEyNjIsImV4cCI6MjA2MTEwNzI2Mn0.Ju9HIi07RfctFO14r2LU0m6I0OvLAKG5Q0fGisYuQ7M",
+            "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jdnp4dmthd2xoamxocHdycXdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1MzEyNjIsImV4cCI6MjA2MTEwNzI2Mn0.Ju9HIi07RfctFO14r2LU0m6I0OvLAKG5Q0fGisYuQ7M",
+            "Content-Type: application/json"
+    })
+//    @POST("rest/v1/locations")
 //    Call<Void> sendLocation(@Body LocationModel location);
 //
-//    @GET("get_locations.php")
-//    Call<LocationResponse> getLocations();
+//    @GET("rest/v1/locations?select=*")
+//    Call<List<LocationModel>> getLocations();
 
+    @GET("locations")
+    Call<List<LocationModel>> getLocations();
 
     @Headers({
             "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jdnp4dmthd2xoamxocHdycXdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1MzEyNjIsImV4cCI6MjA2MTEwNzI2Mn0.Ju9HIi07RfctFO14r2LU0m6I0OvLAKG5Q0fGisYuQ7M",
             "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jdnp4dmthd2xoamxocHdycXdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1MzEyNjIsImV4cCI6MjA2MTEwNzI2Mn0.Ju9HIi07RfctFO14r2LU0m6I0OvLAKG5Q0fGisYuQ7M",
             "Content-Type: application/json"
     })
-    @POST("rest/v1/locations")
+    @POST("locations")
     Call<Void> sendLocation(@Body LocationModel location);
-
-    @Headers({
-            "apikey: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jdnp4dmthd2xoamxocHdycXdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1MzEyNjIsImV4cCI6MjA2MTEwNzI2Mn0.Ju9HIi07RfctFO14r2LU0m6I0OvLAKG5Q0fGisYuQ7M",
-            "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9jdnp4dmthd2xoamxocHdycXdoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDU1MzEyNjIsImV4cCI6MjA2MTEwNzI2Mn0.Ju9HIi07RfctFO14r2LU0m6I0OvLAKG5Q0fGisYuQ7M"
-    })
-    @GET("rest/v1/locations?select=*")
-    Call<LocationResponse> getLocations();
 }

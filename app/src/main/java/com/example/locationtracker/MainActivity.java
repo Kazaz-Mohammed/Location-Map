@@ -14,6 +14,13 @@ import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 import org.osmdroid.views.overlay.mylocation.MyLocationNewOverlay;
 import org.osmdroid.views.overlay.mylocation.GpsMyLocationProvider;
+import org.osmdroid.views.overlay.Marker;
+
+
+import android.view.GestureDetector;
+import android.view.MotionEvent;
+import android.content.Context;
+
 
 import android.util.Log;
 import android.view.View;
@@ -56,6 +63,11 @@ public class MainActivity extends FragmentActivity {
     private Polyline savedPathLine;
 
     private boolean isSavedPathVisible = true;
+    private Marker startMarker;
+    private Marker stopMarker;
+
+
+    private GestureDetector gestureDetector;
 
 
 
@@ -110,6 +122,10 @@ public class MainActivity extends FragmentActivity {
         map.getOverlays().add(pathLine);
 
 
+        toggleTracking.setOnCheckedChangeListener(null); // Remove any previous listener
+
+
+
         toggleTracking.setOnCheckedChangeListener((buttonView, isChecked) -> {
             isTracking = isChecked;
             if (isChecked) {
@@ -162,17 +178,30 @@ public class MainActivity extends FragmentActivity {
         });
 
 
-        Button btnLoadPath = findViewById(R.id.btnLoadPath);
-        btnLoadPath.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                loadSavedPath();
-            }
-        });
+//        Button btnLoadPath = findViewById(R.id.btnLoadPath);
+//        btnLoadPath.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View v) {
+//                loadSavedPath();
+//            }
+//        });
 
 
-        Button btnToggleSavedPath = findViewById(R.id.btnToggleSavedPath);
-        btnToggleSavedPath.setOnClickListener(v -> {
+//        Button btnToggleSavedPath = findViewById(R.id.btnToggleSavedPath);
+//        btnToggleSavedPath.setOnClickListener(v -> {
+////            if (isSavedPathVisible) {
+////                map.getOverlays().remove(savedPathLine);
+////                btnToggleSavedPath.setText("Show Saved Path");
+////            } else {
+////                map.getOverlays().add(savedPathLine);
+////                btnToggleSavedPath.setText("Hide Saved Path");
+////            }
+////            map.invalidate(); // Redraw the map
+////            isSavedPathVisible = !isSavedPathVisible;
+//
+//
+//            if (savedPathLine == null) return; // safety check
+//
 //            if (isSavedPathVisible) {
 //                map.getOverlays().remove(savedPathLine);
 //                btnToggleSavedPath.setText("Show Saved Path");
@@ -180,22 +209,45 @@ public class MainActivity extends FragmentActivity {
 //                map.getOverlays().add(savedPathLine);
 //                btnToggleSavedPath.setText("Hide Saved Path");
 //            }
-//            map.invalidate(); // Redraw the map
+//
 //            isSavedPathVisible = !isSavedPathVisible;
+//            map.invalidate(); // refresh the map
+//        });
 
 
-            if (savedPathLine == null) return; // safety check
-
-            if (isSavedPathVisible) {
-                map.getOverlays().remove(savedPathLine);
-                btnToggleSavedPath.setText("Show Saved Path");
-            } else {
-                map.getOverlays().add(savedPathLine);
-                btnToggleSavedPath.setText("Hide Saved Path");
+        // Add long press detection to the map
+        map.setMapListener(new org.osmdroid.events.MapListener() {
+            @Override
+            public boolean onScroll(org.osmdroid.events.ScrollEvent event) {
+                return false;
             }
 
-            isSavedPathVisible = !isSavedPathVisible;
-            map.invalidate(); // refresh the map
+            @Override
+            public boolean onZoom(org.osmdroid.events.ZoomEvent event) {
+                return false;
+            }
+        });
+
+// Add a custom long press listener
+        gestureDetector = new GestureDetector(this, new GestureDetector.SimpleOnGestureListener() {
+            @Override
+            public void onLongPress(MotionEvent e) {
+                // Convert screen touch point to map coordinates
+                org.osmdroid.api.IGeoPoint mapPoint = map.getProjection().fromPixels((int)e.getX(), (int)e.getY());
+                GeoPoint geoPoint = new GeoPoint(mapPoint.getLatitude(), mapPoint.getLongitude());
+
+                // Add marker at this point
+                addLocationMarker(geoPoint);
+            }
+        });
+
+// Override the map's touch event
+        map.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                gestureDetector.onTouchEvent(event);
+                return false; // Return false to allow the map to handle other touch events normally
+            }
         });
 
     }
@@ -227,6 +279,16 @@ public class MainActivity extends FragmentActivity {
                         isFirstLocation = false;
                     }
 
+
+                    // ✅ ADD START MARKER
+//                    startMarker = new Marker(map);
+//                    startMarker.setPosition(point);
+//                    startMarker.setTitle("Start");
+//                    startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+//                    map.getOverlays().add(startMarker);
+//                    map.invalidate(); // refresh map
+
+
                     // Send location to server
                     LocationApi api = RetrofitClient.getRetrofitInstance().create(LocationApi.class);
                     LocationModel locationModel = new LocationModel(lat, lon);
@@ -237,7 +299,11 @@ public class MainActivity extends FragmentActivity {
                             if (response.isSuccessful()) {
                                 Log.d("Retrofit", "Location sent successfully");
                             } else {
-                                Log.e("Retrofit", "Server error: " + response.code());
+                                try {
+                                    Log.e("Retrofit", "Error sending: " + response.errorBody().string());
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
                             }
                         }
 
@@ -246,6 +312,8 @@ public class MainActivity extends FragmentActivity {
                             Log.e("Retrofit", "Network error", t);
                         }
                     });
+
+
                 }
             }
         };
@@ -261,6 +329,20 @@ public class MainActivity extends FragmentActivity {
         if (fusedLocationClient != null && locationCallback != null) {
             fusedLocationClient.removeLocationUpdates(locationCallback);
         }
+
+        if (!pathPoints.isEmpty()) {
+            GeoPoint lastPoint = pathPoints.get(pathPoints.size() - 1);
+
+            // ✅ Add stop marker
+//            stopMarker = new Marker(map);
+//            stopMarker.setPosition(lastPoint);
+//            stopMarker.setTitle("Stop");
+//            stopMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+//            map.getOverlays().add(stopMarker);
+//
+//            map.invalidate(); // Redraw
+        }
+
     }
 
 
@@ -292,46 +374,160 @@ public class MainActivity extends FragmentActivity {
         map.onPause();
     }
 
-    private void loadSavedPath() {
+//    private void loadSavedPath() {
+//        LocationApi api = RetrofitClient.getRetrofitInstance().create(LocationApi.class);
+//
+//        api.getLocations().enqueue(new Callback<LocationResponse>() {
+//            @Override
+//            public void onResponse(Call<LocationResponse> call, Response<LocationResponse> response) {
+//
+//                Log.d("History", "Raw response: " + response.toString());
+//
+//                if (response.body() == null) {
+//                    try {
+//                        Log.e("History", "Error body: " + response.errorBody().string());
+//                    } catch (IOException e) {
+//                        e.printStackTrace();
+//                    }
+//                }
+//
+//
+//                if (response.isSuccessful() && response.body() != null) {
+//                    List<LocationModel> savedLocations = response.body().getData();
+//
+//                    List<GeoPoint> points = new ArrayList<>();
+//                    for (LocationModel loc : savedLocations) {
+//                        points.add(new GeoPoint(loc.getLatitude(), loc.getLongitude()));
+//                    }
+//
+//                    Polyline savedPath = new Polyline();
+//                    savedPath.setPoints(points);
+//                    savedPath.setColor(Color.BLUE);
+//                    savedPath.setWidth(5f);
+//                    map.getOverlays().add(savedPath);
+//                    map.invalidate();
+//                } else {
+//                    Log.e("History", "Server error");
+//                }
+//            }
+//
+//            @Override
+//            public void onFailure(Call<LocationResponse> call, Throwable t) {
+//                Log.e("History", "Failed to load saved path", t);
+//            }
+//        });
+//    }
+
+
+//    private void addLocationMarker(GeoPoint point) {
+//        // Remove previous long-press marker if exists
+//        for (int i = map.getOverlays().size() - 1; i >= 0; i--) {
+//            if (map.getOverlays().get(i) instanceof Marker) {
+//                Marker m = (Marker) map.getOverlays().get(i);
+//                if (m.getId() != null && m.getId().equals("long_press_marker")) {
+//                    map.getOverlays().remove(i);
+//                    break;
+//                }
+//            }
+//        }
+//
+//        // Create a new marker
+//        Marker marker = new Marker(map);
+//        marker.setPosition(point);
+//        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+//        marker.setId("long_press_marker");
+//
+//        // Format location for display
+//        String locationText = String.format("Location: %.5f, %.5f",
+//                point.getLatitude(),
+//                point.getLongitude());
+//        marker.setTitle(locationText);
+//
+//        // Add marker to map
+//        map.getOverlays().add(marker);
+//
+//        // Show info window (optional)
+//        marker.showInfoWindow();
+//
+//        // Refresh the map
+//        map.invalidate();
+//
+//        // Provide feedback to user
+//        Toast.makeText(MainActivity.this,
+//                "Marker placed at " + locationText,
+//                Toast.LENGTH_SHORT).show();
+//    }
+
+
+    private void addLocationMarker(GeoPoint point) {
+        // Remove previous long-press marker if exists
+        for (int i = map.getOverlays().size() - 1; i >= 0; i--) {
+            if (map.getOverlays().get(i) instanceof Marker) {
+                Marker m = (Marker) map.getOverlays().get(i);
+                if (m.getId() != null && m.getId().equals("long_press_marker")) {
+                    map.getOverlays().remove(i);
+                    break;
+                }
+            }
+        }
+
+        // Create a new marker
+        Marker marker = new Marker(map);
+        marker.setPosition(point);
+        marker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
+        marker.setId("long_press_marker");
+
+        // Format location for display
+        String locationText = String.format("Location: %.5f, %.5f",
+                point.getLatitude(),
+                point.getLongitude());
+        marker.setTitle(locationText);
+
+        // Add marker to map
+        map.getOverlays().add(marker);
+
+        // Show info window
+        marker.showInfoWindow();
+
+        // Refresh the map
+        map.invalidate();
+
+        // Save the location to Supabase
+        saveLocationToSupabase(point.getLatitude(), point.getLongitude());
+
+        // Provide feedback to user
+        Toast.makeText(MainActivity.this,
+                "Marker placed and saved to database",
+                Toast.LENGTH_SHORT).show();
+    }
+
+    private void saveLocationToSupabase(double latitude, double longitude) {
         LocationApi api = RetrofitClient.getRetrofitInstance().create(LocationApi.class);
+        LocationModel locationModel = new LocationModel(latitude, longitude);
 
-        api.getLocations().enqueue(new Callback<LocationResponse>() {
+        api.sendLocation(locationModel).enqueue(new Callback<Void>() {
             @Override
-            public void onResponse(Call<LocationResponse> call, Response<LocationResponse> response) {
-
-                Log.d("History", "Raw response: " + response.toString());
-
-                if (response.body() == null) {
+            public void onResponse(Call<Void> call, Response<Void> response) {
+                if (response.isSuccessful()) {
+                    Log.d("Supabase", "Marker location saved successfully");
+                } else {
                     try {
-                        Log.e("History", "Error body: " + response.errorBody().string());
+                        Log.e("Supabase", "Error saving marker: " + response.errorBody().string());
+                        Toast.makeText(MainActivity.this,
+                                "Failed to save marker to database",
+                                Toast.LENGTH_SHORT).show();
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
                 }
-
-
-                if (response.isSuccessful() && response.body() != null) {
-                    List<LocationModel> savedLocations = response.body().getData();
-
-                    List<GeoPoint> points = new ArrayList<>();
-                    for (LocationModel loc : savedLocations) {
-                        points.add(new GeoPoint(loc.getLatitude(), loc.getLongitude()));
-                    }
-
-                    Polyline savedPath = new Polyline();
-                    savedPath.setPoints(points);
-                    savedPath.setColor(Color.BLUE);
-                    savedPath.setWidth(5f);
-                    map.getOverlays().add(savedPath);
-                    map.invalidate();
-                } else {
-                    Log.e("History", "Server error");
-                }
             }
 
             @Override
-            public void onFailure(Call<LocationResponse> call, Throwable t) {
-                Log.e("History", "Failed to load saved path", t);
+            public void onFailure(Call<Void> call, Throwable t) {
+                Log.e("Supabase", "Network error saving marker", t);
+                Toast.makeText(MainActivity.this,
+                        "Network error: Could not save marker",
+                        Toast.LENGTH_SHORT).show();
             }
         });
     }

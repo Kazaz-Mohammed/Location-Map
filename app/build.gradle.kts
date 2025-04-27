@@ -42,7 +42,7 @@ dependencies {
 
     // For OpenStreetMap (osmdroid)
     implementation ("org.osmdroid:osmdroid-android:6.1.10")
-
+    implementation ("org.osmdroid:osmdroid-mapsforge:6.1.10")
 // For Retrofit
     implementation ("com.squareup.retrofit2:retrofit:2.9.0")
     implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
